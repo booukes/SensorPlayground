@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="32dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Playground"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_centerVertical="true"/>
+
+        <Button
+            android:id="@+id/btn_view_raw_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Logs"
+            android:layout_alignParentEnd="true"
+            style="@style/Widget.MaterialComponents.Button.TextButton"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/tv_api_data"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="API: Waiting..."
+            android:textColor="#009900"/>
+        <TextView
+            android:id="@+id/tv_sensor_data"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sensor: 0 μT"
+            android:textColor="#CC0000"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_sync_api"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fetch API Data"
+        android:layout_marginTop="8dp"/>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart_sensor"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp"/>
+
+    <ToggleButton
+        android:id="@+id/btn_record"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textOff="Start Recording"
+        android:textOn="Stop Recording" />
+
+</LinearLayout>
