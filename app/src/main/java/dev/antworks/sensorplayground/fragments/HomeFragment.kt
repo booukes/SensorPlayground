@@ -20,6 +20,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             findNavController().navigate(R.id.action_home_to_playground)
         }
 
+        binding.btnFunGames.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_gamesList)
+        }
+
         binding.btnSensorSettings.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_sensorSettings)
         }

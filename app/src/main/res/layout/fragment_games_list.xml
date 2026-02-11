@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:paddingTop="24dp"
+        android:text="Arcade Mode"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/btn_game_magnet"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="Magnetic Hunter\n(Magnetometer)"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/btn_game_tilt"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:text="Tilt Breaker\n(Accelerometer)"
+        android:textSize="18sp" />
+    <Button
+        android:id="@+id/btn_game_lux"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="Light Reactor\n(Lux sensor)"
+        android:layout_marginTop="16dp"
+        android:textSize="18sp"/>
+
+</LinearLayout>

@@ -20,6 +20,15 @@
             app:destination="@id/dataSettingsFragment" />
     </fragment>
 
+    <action
+        android:id="@+id/action_gamesList_to_luxPoc"
+        app:destination="@id/luxPocFragment" />
+
+    <fragment
+        android:id="@+id/luxPocFragment"
+        android:name="dev.antworks.sensorplayground.fragments.LuxPocFragment"
+        tools:layout="@layout/fragment_lux_poc" />
+
     <fragment
         android:id="@+id/playgroundFragment"
         android:name="dev.antworks.sensorplayground.fragments.PlaygroundFragment"
@@ -43,5 +52,32 @@
         android:id="@+id/dataSettingsFragment"
         android:name="dev.antworks.sensorplayground.fragments.DataSettingsFragment"
         tools:layout="@layout/fragment_data_settings" />
+
+    <action
+        android:id="@+id/action_home_to_gamesList"
+        app:destination="@id/gamesListFragment" />
+
+    <fragment
+        android:id="@+id/gamesListFragment"
+        android:name="dev.antworks.sensorplayground.fragments.GamesListFragment"
+        tools:layout="@layout/fragment_games_list">
+        <action
+            android:id="@+id/action_gamesList_to_magneticHunter"
+            app:destination="@id/magneticHunterFragment" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_gamesList_to_tiltGame"
+        app:destination="@id/tiltGameFragment" />
+
+    <fragment
+        android:id="@+id/tiltGameFragment"
+        android:name="dev.antworks.sensorplayground.fragments.TiltGameFragment"
+        tools:layout="@layout/fragment_tilt_game" />
+
+    <fragment
+        android:id="@+id/magneticHunterFragment"
+        android:name="dev.antworks.sensorplayground.fragments.MagneticHunterFragment"
+        tools:layout="@layout/fragment_magnetic_hunter" />
 
 </navigation>

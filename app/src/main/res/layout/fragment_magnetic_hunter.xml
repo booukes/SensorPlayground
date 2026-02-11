@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#121212">
+
+    <TextView
+        android:id="@+id/tv_score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 µT"
+        android:textColor="#FFFFFF"
+        android:textSize="48sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Magnetic Field Strength"
+        android:textColor="#AAAAAA"
+        android:layout_marginBottom="50dp"/>
+
+    <ProgressBar
+        android:id="@+id/progress_strength"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:max="300"
+        android:progress="0"
+        tools:progress="50"/>
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SEARCHING..."
+        android:textColor="#00FF00"
+        android:textSize="24sp"
+        android:layout_marginTop="32dp"
+        android:textStyle="bold"/>
+
+</LinearLayout>

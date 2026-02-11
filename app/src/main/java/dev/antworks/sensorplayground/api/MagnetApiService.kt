@@ -50,16 +50,14 @@ data class MagnetResponse(
 }
 
 interface MagnetApiService {
-    // British Geological Survey (BGS) Geomagnetic Calculator API
-    // Free API, no key required
-    // Returns magnetic field data using World Magnetic Model (WMM)
+    // British Geological Survey Geomagnetic Calculator API
     @GET("web_service/GMModels/{model}/{revision}/")
     suspend fun getMagneticField(
         @Path("model") model: String = "wmm",
         @Path("revision") revision: String = "2025",
         @Query("latitude") lat: Double,
         @Query("longitude") lon: Double,
-        @Query("altitude") alt: Double,  // in kilometers!
+        @Query("altitude") alt: Double,  // km
         @Query("date") date: String,
         @Query("format") format: String = "json"
     ): Response<MagnetResponse>

@@ -36,8 +36,10 @@ class RawDataFragment : Fragment(R.layout.fragment_raw_data) {
             binding.btnExport.isEnabled = false
             return
         }
+
         binding.btnExport.isEnabled = true
 
+        // Switch preview/output based on selected export format
         if (SensorRepository.dataFormat == "CSV") {
             binding.btnExport.text = "Export CSV"
             binding.tvLogs.text = generateCsvString(preview = true)
@@ -48,23 +50,30 @@ class RawDataFragment : Fragment(R.layout.fragment_raw_data) {
     }
 
     private fun generateJsonString(preview: Boolean): String {
-        val logs = if (preview) SensorRepository.rawDataLogs.takeLast(10) else SensorRepository.rawDataLogs
+        // Limit preview size for UI readability
+        val logs =
+            if (preview) SensorRepository.rawDataLogs.takeLast(10)
+            else SensorRepository.rawDataLogs
 
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.toJson(logs)
     }
 
     private fun generateCsvString(preview: Boolean): String {
-        val logs = if (preview) SensorRepository.rawDataLogs.takeLast(20) else SensorRepository.rawDataLogs
-        val sb = StringBuilder()
+        // CSV preview shows more rows since it's compact
+        val logs =
+            if (preview) SensorRepository.rawDataLogs.takeLast(20)
+            else SensorRepository.rawDataLogs
 
+        val sb = StringBuilder()
         sb.append("Timestamp,SensorType,Value_1,Value_2,Value_3\n")
 
         logs.forEach { log ->
+            // Split raw sensor values (x|y|z or single value)
             val parts = log.values.split("|")
-            val v1 = if (parts.isNotEmpty()) parts[0] else ""
-            val v2 = if (parts.size > 1) parts[1] else ""
-            val v3 = if (parts.size > 2) parts[2] else ""
+            val v1 = parts.getOrElse(0) { "" }
+            val v2 = parts.getOrElse(1) { "" }
+            val v3 = parts.getOrElse(2) { "" }
 
             sb.append("${log.timestamp},${log.sensorType},$v1,$v2,$v3\n")
         }
@@ -76,6 +85,7 @@ class RawDataFragment : Fragment(R.layout.fragment_raw_data) {
         val mimeType: String
         val title: String
 
+        // Prepare export payload based on selected format
         if (SensorRepository.dataFormat == "CSV") {
             outputContent = generateCsvString(preview = false)
             mimeType = "text/comma-separated-values"
@@ -86,11 +96,13 @@ class RawDataFragment : Fragment(R.layout.fragment_raw_data) {
             title = "Export Sensor Data JSON"
         }
 
-        val sendIntent: Intent = Intent().apply {
+        // Share via standard Android intent
+        val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, outputContent)
             type = mimeType
         }
+
         startActivity(Intent.createChooser(sendIntent, title))
     }
 
