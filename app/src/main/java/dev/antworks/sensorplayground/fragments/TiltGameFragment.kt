@@ -44,7 +44,6 @@ class TiltGameFragment : Fragment(R.layout.fragment_tilt_game), SensorEventListe
                 xMax = (binding.gameContainer.width - binding.ball.width).toFloat()
                 yMax = (binding.gameContainer.height - binding.ball.height).toFloat()
 
-                // Start is at the exact center
                 xPos = xMax / 2
                 yPos = yMax / 2
             }
@@ -54,7 +53,6 @@ class TiltGameFragment : Fragment(R.layout.fragment_tilt_game), SensorEventListe
     override fun onResume() {
         super.onResume()
         accelerometer?.let {
-            // SENSOR_DELAY_GAME is key for smoothness
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
         }
     }

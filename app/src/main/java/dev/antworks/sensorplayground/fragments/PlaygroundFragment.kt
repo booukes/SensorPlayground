@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import dev.antworks.sensorplayground.R
 import dev.antworks.sensorplayground.api.RetrofitClient
+import dev.antworks.sensorplayground.data.SensorDatabase
 import dev.antworks.sensorplayground.data.SensorLog
 import dev.antworks.sensorplayground.data.SensorRepository
 import dev.antworks.sensorplayground.data.SensorType
@@ -24,6 +25,7 @@ import dev.antworks.sensorplayground.databinding.FragmentPlaygroundBinding
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -34,7 +36,6 @@ import kotlin.math.sqrt
 class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventListener {
 
     private var _binding: FragmentPlaygroundBinding? = null
-    // Valid only between onViewCreated and onDestroyView
     private val binding get() = _binding!!
 
     private lateinit var sensorManager: SensorManager
@@ -43,9 +44,10 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
 
     private val entries = ArrayList<Entry>()
     private var startTime = System.currentTimeMillis()
-    private var isRecording = false
 
-    // Expected Earth magnetic field from API (µT)
+    @Volatile private var isRecording = false
+    private var currentSessionId = 0L
+
     private var expectedFieldStrength: Double? = null
     private var currentMagnitude: Float = 0f
 
@@ -54,7 +56,6 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
         _binding = FragmentPlaygroundBinding.bind(view)
 
         sensorManager = requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
         currentSensorType = SensorRepository.selectedSensor
         setupActiveSensor()
         setupChart()
@@ -66,12 +67,14 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
         }
 
         binding.btnRecord.setOnCheckedChangeListener { _, isChecked ->
-            isRecording = isChecked
-            Toast.makeText(
-                context,
-                if (isChecked) "Recording started" else "Recording stopped",
-                Toast.LENGTH_SHORT
-            ).show()
+            if (isChecked) {
+                currentSessionId = System.currentTimeMillis()
+                isRecording = true
+                Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
+            } else {
+                isRecording = false
+                Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -79,7 +82,6 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
         val sensorIntType: Int
         val sensorName: String
 
-        // UI + sensor selection based on chosen sensor type
         if (currentSensorType == SensorType.MAGNETOMETER) {
             binding.tvApiData.visibility = View.VISIBLE
             binding.btnSyncApi.visibility = View.VISIBLE
@@ -98,12 +100,10 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
         }
 
         activeSensor = sensorManager.getDefaultSensor(sensorIntType)
-
         binding.tvSensorData.text =
-            if (activeSensor == null) "Sensor Not Supported on Device"
+            if (activeSensor == null) "Sensor not supported on this device"
             else "Waiting for data..."
 
-        // Update dataset label if chart already exists
         binding.chartSensor.data?.takeIf { it.dataSetCount > 0 }
             ?.getDataSetByIndex(0)?.label = sensorName
     }
@@ -114,14 +114,12 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
             SensorType.ACCELEROMETER -> "Accel (m/s²)"
             SensorType.LIGHT -> "Light (Lux)"
         }
-
         val dataSet = LineDataSet(entries, label).apply {
             setDrawCircles(false)
             lineWidth = 2f
             color = requireContext().getColor(android.R.color.holo_red_dark)
             setDrawValues(false)
         }
-
         binding.chartSensor.data = LineData(dataSet)
         binding.chartSensor.description.isEnabled = false
         binding.chartSensor.invalidate()
@@ -137,6 +135,10 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
+        if (isRecording) {
+            isRecording = false
+            binding.btnRecord.isChecked = false
+        }
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -152,33 +154,22 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
                 logValues = "$lux"
                 binding.tvSensorData.text = "Light: %.1f Lux".format(lux)
             }
-
             SensorType.MAGNETOMETER -> {
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
-
-                // Vector magnitude of magnetic field
+                val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
                 val magnitude = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
                 currentMagnitude = magnitude
-
                 plottedValue = magnitude
                 logValues = "$x|$y|$z"
-
                 binding.tvSensorData.text =
                     expectedFieldStrength?.let { expected ->
                         val diff = magnitude - expected
-                        val diffPercent = abs(diff / expected) * 100
+                        val pct = abs(diff / expected) * 100
                         "Sensor: %.2f µT (%.1f%% ${if (diff > 0) "above" else "below"} expected)"
-                            .format(magnitude, diffPercent)
+                            .format(magnitude, pct)
                     } ?: "Sensor: %.2f µT".format(magnitude)
             }
-
             SensorType.ACCELEROMETER -> {
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
-
+                val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
                 val magnitude = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
                 plottedValue = magnitude
                 logValues = "$x|$y|$z"
@@ -186,21 +177,29 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
             }
         }
 
-        val timeSec = (System.currentTimeMillis() - startTime) / 1000f
-        addEntryToChart(timeSec, plottedValue)
+        addEntryToChart((System.currentTimeMillis() - startTime) / 1000f, plottedValue)
 
-        // Persist raw values if recording is enabled
         if (isRecording) {
-            SensorRepository.rawDataLogs.add(
-                SensorLog(System.currentTimeMillis(), currentSensorType.name, logValues)
+            val sessionSnapshot = currentSessionId
+            val log = SensorLog(
+                timestamp = System.currentTimeMillis(),
+                sensorType = currentSensorType.name,
+                values = logValues,
+                sessionId = sessionSnapshot
             )
+            if (SensorRepository.useSqlDatabase) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    SensorDatabase.get(requireContext()).logDao().insert(log)
+                }
+            } else {
+                SensorRepository.rawDataLogs.add(log)
+            }
         }
     }
 
     private fun addEntryToChart(x: Float, y: Float) {
         val data = binding.chartSensor.data ?: return
         var set = data.getDataSetByIndex(0)
-
         if (set == null) {
             set = LineDataSet(ArrayList(), "Data").apply {
                 setDrawCircles(false)
@@ -210,14 +209,8 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
             }
             data.addDataSet(set)
         }
-
         data.addEntry(Entry(x, y), 0)
-
-        // Keep dataset size bounded
-        if (set.entryCount > 500) {
-            set.removeFirst()
-        }
-
+        if (set.entryCount > 500) set.removeFirst()
         data.notifyDataChanged()
         binding.chartSensor.notifyDataSetChanged()
         binding.chartSensor.setVisibleXRangeMaximum(10f)
@@ -226,24 +219,18 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
 
     private fun fetchApiData() {
         if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
+                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                101
+                requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101
             )
             return
         }
 
-        val locManager =
-            requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        val location =
-            locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                ?: locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        val locManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val location = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            ?: locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
         if (location == null) {
             Toast.makeText(context, "Location unavailable", Toast.LENGTH_SHORT).show()
@@ -252,49 +239,33 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
 
         lifecycleScope.launch {
             try {
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                val currentDate = dateFormat.format(Calendar.getInstance().time)
-
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                    .format(Calendar.getInstance().time)
                 val response = RetrofitClient.instance.getMagneticField(
-                    model = "wmm",
-                    revision = "2025",
-                    lat = location.latitude,
-                    lon = location.longitude,
-                    alt = 0.0,
-                    date = currentDate,
-                    format = "json"
+                    model = "wmm", revision = "2025",
+                    lat = location.latitude, lon = location.longitude,
+                    alt = 0.0, date = date, format = "json"
                 )
-
                 if (!response.isSuccessful || response.body() == null) {
                     binding.tvApiData.text = "API Error: ${response.code()}"
                     return@launch
                 }
-
-                val totalIntensity =
-                    response.body()!!.result?.fieldValue?.totalIntensity?.value
-                        ?: run {
-                            binding.tvApiData.text = "API: No data"
-                            return@launch
-                        }
+                val totalIntensity = response.body()!!.result?.fieldValue?.totalIntensity?.value
+                    ?: run { binding.tvApiData.text = "API: No data"; return@launch }
 
                 val uT = totalIntensity / 1000.0
                 expectedFieldStrength = uT
-
                 val diff = currentMagnitude - uT
-                val diffPercent = abs(diff / uT) * 100
-
+                val pct = abs(diff / uT) * 100
                 binding.tvApiData.text = "Expected: %.2f µT\n%s%s".format(
                     uT,
                     when {
-                        diffPercent < 5 -> "✓ Accurate"
-                        diffPercent < 15 -> "~ Minor interference"
-                        else -> "⚠ Strong interference detected"
+                        pct < 5 -> "✓ Accurate"
+                        pct < 15 -> "~ Minor interference"
+                        else -> "⚠ Strong interference"
                     },
-                    if (abs(diff) > 5)
-                        " | ${if (diff > 0) "+" else ""}%.1f µT".format(diff)
-                    else ""
+                    if (abs(diff) > 5) " | ${if (diff > 0) "+" else ""}%.1f µT".format(diff) else ""
                 )
-
             } catch (e: Exception) {
                 binding.tvApiData.text = "Net Error"
                 e.printStackTrace()
@@ -302,7 +273,7 @@ class PlaygroundFragment : Fragment(R.layout.fragment_playground), SensorEventLi
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onDestroyView() {
         super.onDestroyView()

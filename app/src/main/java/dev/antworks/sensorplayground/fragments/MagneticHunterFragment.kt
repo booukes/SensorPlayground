@@ -21,6 +21,10 @@ class MagneticHunterFragment : Fragment(R.layout.fragment_magnetic_hunter), Sens
     private lateinit var sensorManager: SensorManager
     private var magnetometer: Sensor? = null
 
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        //empty
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentMagneticHunterBinding.bind(view)
@@ -30,7 +34,7 @@ class MagneticHunterFragment : Fragment(R.layout.fragment_magnetic_hunter), Sens
 
         if (magnetometer == null) {
             // Device does not support magnetometer
-            binding.tvStatus.text = "NO SENSOR :("
+            binding.tvStatus.text = "NO SENSOR"
             binding.tvStatus.setTextColor(
                 ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
             )
@@ -72,7 +76,7 @@ class MagneticHunterFragment : Fragment(R.layout.fragment_magnetic_hunter), Sens
 
         when {
             score > 200 -> {
-                binding.tvStatus.text = "☢️ DANGER! ☢️"
+                binding.tvStatus.text = "DANGER!"
                 binding.tvStatus.setTextColor(0xFFFF0000.toInt())
                 binding.root.setBackgroundColor(0xFF220000.toInt())
             }

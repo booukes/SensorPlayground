@@ -3,65 +3,62 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingTop="32dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingBottom="16dp">
+    android:padding="16dp"
+    android:paddingTop="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Data Configuration"
-        android:textSize="24sp"
-        android:textStyle="bold"
+        android:text="Data Settings"
+        android:textAppearance="?attr/textAppearanceHeadline6"
         android:layout_marginBottom="24dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Export Format"
-        android:textSize="16sp"
+        android:textAppearance="?attr/textAppearanceSubtitle2"
         android:layout_marginBottom="8dp"/>
 
     <RadioGroup
         android:id="@+id/rg_format"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="32dp">
 
         <RadioButton
             android:id="@+id/rb_json"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="JSON (JavaScript Object Notation)"/>
+            android:text="JSON"
+            android:padding="8dp"/>
 
         <RadioButton
             android:id="@+id/rb_csv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CSV (Comma Separated Values)"/>
+            android:text="CSV"
+            android:padding="8dp"/>
     </RadioGroup>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Storage Backend"
-        android:textSize="16sp"
+        android:textAppearance="?attr/textAppearanceSubtitle2"
         android:layout_marginBottom="8dp"/>
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/switch_sql"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enable SQL Database Integration"
-        android:textSize="18sp"/>
+        android:text="Enable SQL Database"
+        android:layout_marginBottom="4dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="(Planned Feature: Currently uses In-Memory List)"
-        android:textSize="12sp"
-        android:layout_marginTop="-8dp"
-        android:layout_marginBottom="24dp"/>
+        android:text="Beta feature — may have bugs, disable to use in-memory list"
+        android:textAppearance="?attr/textAppearanceCaption"/>
 
 </LinearLayout>

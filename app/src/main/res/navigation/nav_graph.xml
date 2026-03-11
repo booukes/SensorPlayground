@@ -80,4 +80,28 @@
         android:name="dev.antworks.sensorplayground.fragments.MagneticHunterFragment"
         tools:layout="@layout/fragment_magnetic_hunter" />
 
+    <fragment
+        android:id="@+id/sessionsFragment"
+        android:name="dev.antworks.sensorplayground.fragments.SessionsFragment"
+        android:label="Saved Sessions"
+        tools:layout="@layout/fragment_sessions">
+
+        <action
+            android:id="@+id/action_sessions_to_rawData"
+            app:destination="@id/rawDataFragment"/>
+    </fragment>
+
+    <!-- 2. RawData fragment needs a new argument for sessionId -->
+    <!-- Find your existing rawDataFragment entry and add: -->
+    <argument
+        android:name="sessionId"
+        app:argType="long"
+        android:defaultValue="-1L" />
+
+    <!-- 3. Add a way to reach Sessions from Home or Raw Data.
+         Example: add this action inside your homeFragment entry: -->
+    <action
+        android:id="@+id/action_home_to_sessions"
+        app:destination="@id/sessionsFragment"/>
+
 </navigation>

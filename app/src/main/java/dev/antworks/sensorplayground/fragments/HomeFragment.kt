@@ -31,6 +31,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.btnDataSettings.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_dataSettings)
         }
+        binding.btnSessions.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_sessions)
+        }
     }
 
     override fun onDestroyView() {

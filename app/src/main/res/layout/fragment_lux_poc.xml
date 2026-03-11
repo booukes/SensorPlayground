@@ -4,17 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:background="#FFFFFF"
-    android:padding="32dp">
+    android:gravity="center">
 
     <TextView
         android:id="@+id/tv_emoji"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="😐"
-        android:textSize="120sp"
-        android:layout_marginBottom="24dp"/>
+        android:textSize="96sp"
+        android:layout_marginBottom="16dp"/>
 
     <TextView
         android:id="@+id/tv_lux_value"
@@ -22,6 +20,6 @@
         android:layout_height="wrap_content"
         android:text="0.0 lx"
         android:fontFamily="monospace"
-        android:textSize="18sp"/>
+        android:textAppearance="?attr/textAppearanceHeadline6"/>
 
 </LinearLayout>

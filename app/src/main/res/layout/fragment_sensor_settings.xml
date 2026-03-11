@@ -3,26 +3,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingTop="32dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingBottom="16dp">
+    android:padding="16dp"
+    android:paddingTop="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Active Sensor"
-        android:textSize="24sp"
-        android:textStyle="bold"
+        android:text="Active Sensor"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Only one sensor can be active at a time."
+        android:textAppearance="?attr/textAppearanceCaption"
         android:layout_marginBottom="24dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Only one sensor can be active at a time in the Playground."
-        android:textSize="14sp"
-        android:layout_marginBottom="16dp"
-        android:textColor="#666666"/>
 
     <RadioGroup
         android:id="@+id/rg_sensors"
@@ -33,25 +29,22 @@
             android:id="@+id/rb_magnetometer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Magnetometer (Magnetic Field)"
-            android:textSize="18sp"
-            android:padding="8dp"/>
+            android:text="Magnetometer"
+            android:padding="12dp"/>
 
         <RadioButton
             android:id="@+id/rb_accelerometer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Accelerometer (Motion/Gravity)"
-            android:textSize="18sp"
-            android:padding="8dp"/>
+            android:text="Accelerometer"
+            android:padding="12dp"/>
 
         <RadioButton
             android:id="@+id/rb_light"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Light Sensor (Ambient Lux)"
-            android:textSize="18sp"
-            android:padding="8dp"/>
+            android:text="Light Sensor"
+            android:padding="12dp"/>
     </RadioGroup>
 
 </LinearLayout>

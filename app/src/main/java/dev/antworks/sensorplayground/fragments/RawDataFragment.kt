@@ -4,34 +4,89 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import dev.antworks.sensorplayground.R
+import dev.antworks.sensorplayground.data.SensorDatabase
+import dev.antworks.sensorplayground.data.SensorLog
 import dev.antworks.sensorplayground.data.SensorRepository
 import dev.antworks.sensorplayground.databinding.FragmentRawDataBinding
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RawDataFragment : Fragment(R.layout.fragment_raw_data) {
 
     private var _binding: FragmentRawDataBinding? = null
     private val binding get() = _binding!!
 
+    // If opened from SessionsFragment, this will be set to a specific session ID.
+    // If opened from PlaygroundFragment (View Logs button), it's -1 → show in-memory list.
+    private var sessionId: Long = -1L
+
+    // The logs currently displayed — either in-memory or loaded from DB
+    private var displayedLogs: List<SensorLog> = emptyList()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentRawDataBinding.bind(view)
 
-        updateUiState()
+        sessionId = arguments?.getLong("sessionId", -1L) ?: -1L
 
-        binding.btnExport.setOnClickListener {
-            exportData()
+        lifecycleScope.launch {
+            loadLogs()
+            updateUiState()
         }
 
+        binding.btnExport.setOnClickListener { exportData() }
+
         binding.btnClear.setOnClickListener {
-            SensorRepository.rawDataLogs.clear()
-            updateUiState()
+            lifecycleScope.launch {
+                if (sessionId != -1L) {
+                    // Viewing a specific DB session — delete just that session
+                    withContext(Dispatchers.IO) {
+                        SensorDatabase.get(requireContext()).logDao().deleteSession(sessionId)
+                    }
+                    displayedLogs = emptyList()
+                } else if (SensorRepository.useSqlDatabase) {
+                    withContext(Dispatchers.IO) {
+                        SensorDatabase.get(requireContext()).logDao().clearAll()
+                    }
+                    SensorRepository.rawDataLogs.clear()
+                    displayedLogs = emptyList()
+                } else {
+                    SensorRepository.rawDataLogs.clear()
+                    displayedLogs = emptyList()
+                }
+                updateUiState()
+            }
+        }
+    }
+
+    private suspend fun loadLogs() {
+        displayedLogs = when {
+            sessionId != -1L -> {
+                withContext(Dispatchers.IO) {
+                    SensorDatabase.get(requireContext()).logDao().getSession(sessionId)
+                }
+            }
+            SensorRepository.useSqlDatabase -> {
+                withContext(Dispatchers.IO) {
+                    val dao = SensorDatabase.get(requireContext()).logDao()
+                    val allIds = dao.getAllSessionIds()
+                    allIds.flatMap { dao.getSession(it) }
+                }.also {
+                    SensorRepository.rawDataLogs.apply { clear(); addAll(it) }
+                }
+            }
+            else -> {
+                SensorRepository.rawDataLogs.toList()
+            }
         }
     }
 
     private fun updateUiState() {
-        if (SensorRepository.rawDataLogs.isEmpty()) {
+        if (displayedLogs.isEmpty()) {
             binding.tvLogs.text = "No logs recorded yet."
             binding.btnExport.isEnabled = false
             return
@@ -39,71 +94,38 @@ class RawDataFragment : Fragment(R.layout.fragment_raw_data) {
 
         binding.btnExport.isEnabled = true
 
-        // Switch preview/output based on selected export format
         if (SensorRepository.dataFormat == "CSV") {
             binding.btnExport.text = "Export CSV"
-            binding.tvLogs.text = generateCsvString(preview = true)
+            binding.tvLogs.text = toCsv(displayedLogs.takeLast(20))
         } else {
             binding.btnExport.text = "Export JSON"
-            binding.tvLogs.text = generateJsonString(preview = true)
+            binding.tvLogs.text = toJson(displayedLogs.takeLast(10))
         }
     }
 
-    private fun generateJsonString(preview: Boolean): String {
-        // Limit preview size for UI readability
-        val logs =
-            if (preview) SensorRepository.rawDataLogs.takeLast(10)
-            else SensorRepository.rawDataLogs
+    private fun toJson(logs: List<SensorLog>): String =
+        GsonBuilder().setPrettyPrinting().create().toJson(logs)
 
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        return gson.toJson(logs)
-    }
-
-    private fun generateCsvString(preview: Boolean): String {
-        // CSV preview shows more rows since it's compact
-        val logs =
-            if (preview) SensorRepository.rawDataLogs.takeLast(20)
-            else SensorRepository.rawDataLogs
-
-        val sb = StringBuilder()
-        sb.append("Timestamp,SensorType,Value_1,Value_2,Value_3\n")
-
+    private fun toCsv(logs: List<SensorLog>): String = buildString {
+        append("Timestamp,SensorType,Value_1,Value_2,Value_3\n")
         logs.forEach { log ->
-            // Split raw sensor values (x|y|z or single value)
-            val parts = log.values.split("|")
-            val v1 = parts.getOrElse(0) { "" }
-            val v2 = parts.getOrElse(1) { "" }
-            val v3 = parts.getOrElse(2) { "" }
-
-            sb.append("${log.timestamp},${log.sensorType},$v1,$v2,$v3\n")
+            val p = log.values.split("|")
+            append("${log.timestamp},${log.sensorType},${p.getOrElse(0){""}}," +
+                    "${p.getOrElse(1){""}}," +
+                    "${p.getOrElse(2){""}}\n")
         }
-        return sb.toString()
     }
 
     private fun exportData() {
-        val outputContent: String
-        val mimeType: String
-        val title: String
-
-        // Prepare export payload based on selected format
-        if (SensorRepository.dataFormat == "CSV") {
-            outputContent = generateCsvString(preview = false)
-            mimeType = "text/comma-separated-values"
-            title = "Export Sensor Data CSV"
+        val (content, mime, title) = if (SensorRepository.dataFormat == "CSV") {
+            Triple(toCsv(displayedLogs), "text/comma-separated-values", "Export Sensor CSV")
         } else {
-            outputContent = generateJsonString(preview = false)
-            mimeType = "application/json"
-            title = "Export Sensor Data JSON"
+            Triple(toJson(displayedLogs), "application/json", "Export Sensor JSON")
         }
-
-        // Share via standard Android intent
-        val sendIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, outputContent)
-            type = mimeType
-        }
-
-        startActivity(Intent.createChooser(sendIntent, title))
+        startActivity(Intent.createChooser(
+            Intent(Intent.ACTION_SEND).apply { putExtra(Intent.EXTRA_TEXT, content); type = mime },
+            title
+        ))
     }
 
     override fun onDestroyView() {

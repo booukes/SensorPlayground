@@ -4,31 +4,39 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="32dp">
+    android:padding="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Sensor Playground"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
+        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:layout_marginBottom="40dp"/>
 
     <Button
         android:id="@+id/btn_playground"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         android:text="Open Playground"
-        android:textSize="18sp"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="12dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+    />
 
     <Button
         android:id="@+id/btn_fun_games"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         android:text="Fun &amp; Games 🎮"
-        android:textSize="18sp"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="12dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+    <Button
+        android:id="@+id/btn_sessions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Saved Sessions 💾"
+        android:layout_marginBottom="32dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,18 +46,20 @@
         <Button
             android:id="@+id/btn_sensor_settings"
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Sensor\nSettings"
-            android:layout_marginEnd="8dp"/>
+            android:text="Sensor Settings"
+            android:layout_marginEnd="6dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"/>
 
         <Button
             android:id="@+id/btn_data_settings"
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Data\nSettings"
-            android:layout_marginStart="8dp"/>
+            android:text="Data Settings"
+            android:layout_marginStart="6dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"/>
     </LinearLayout>
 
 </LinearLayout>

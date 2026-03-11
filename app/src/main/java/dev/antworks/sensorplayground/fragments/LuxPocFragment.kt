@@ -31,7 +31,6 @@ class LuxPocFragment : Fragment(R.layout.fragment_lux_poc), SensorEventListener 
     override fun onResume() {
         super.onResume()
         lightSensor?.let {
-            // SENSOR_DELAY_UI is enough for quick game, doesnt drain much battery
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
         }
     }

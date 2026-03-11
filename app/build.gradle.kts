@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    // Add parcelize for passing data between fragments if needed
+    alias(libs.plugins.ksp)
     id("kotlin-parcelize")
 }
 
@@ -29,7 +29,6 @@ android {
         }
     }
 
-    // Enable ViewBinding (Crucial for XML layouts in Kotlin)
     buildFeatures {
         viewBinding = true
     }
@@ -44,7 +43,6 @@ android {
 }
 
 dependencies {
-    // EXISTING DEPENDENCIES
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -54,22 +52,20 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // --- NEW DEPENDENCIES ADDED FOR SENSOR PLAYGROUND ---
-
-    // Navigation Component (moving between screens)
     implementation("androidx.navigation:navigation-fragment-ktx:2.8.0")
     implementation("androidx.navigation:navigation-ui-ktx:2.8.0")
 
-    // Retrofit & Gson (Networking & JSON parsing for Amentum API)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
-    // MPAndroidChart (For the graphs)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
-    // Lifecycle (For coroutines in fragments)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0")
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 }

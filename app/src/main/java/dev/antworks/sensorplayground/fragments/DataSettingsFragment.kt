@@ -21,7 +21,9 @@ class DataSettingsFragment : Fragment(R.layout.fragment_data_settings) {
         } else {
             binding.rbJson.isChecked = true
         }
-        binding.switchSql.isChecked = SensorRepository.useSqlDatabase
+
+        SensorRepository.useSqlDatabase = true
+        binding.switchSql.isChecked = true
 
         binding.rgFormat.setOnCheckedChangeListener { _, checkedId ->
             SensorRepository.dataFormat = if (checkedId == R.id.rb_csv) "CSV" else "JSON"
